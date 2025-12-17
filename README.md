@@ -111,6 +111,3 @@ Ketinggian air dalam persentase dihitung dengan mempertimbangkan jarak kalibrasi
 $$\text{Level}(\%) = \left( 1 - \frac{D_{ukur} - D_{min}}{D_{max} - D_{min}} \right) \times 100$$
 
 Ini memastikan bahwa semakin kecil $D_{ukur}$ (sensor semakin dekat ke air), semakin tinggi persentase Level (mendekati 100%).
-=======
-# Flood-Detection
->>>>>>> f1e1dd20ac6ba133392c2b841b7f0ea7fe6e1985
