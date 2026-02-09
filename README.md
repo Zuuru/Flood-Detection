@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 🌊 Proyek Deteksi Banjir IoT (ESP32)
 
 
