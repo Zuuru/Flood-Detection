@@ -6,7 +6,7 @@
 #define WIFI_PASSWORD   "password_wifi_kamu"
 
 // ===== Firebase =====
-#define FIREBASE_HOST   "https://nama-project-default-rtdb.firebaseio.com/"
+#define FIREBASE_HOST   "https://flood-detection-6299c-default-rtdb.asia-southeast1.firebasedatabase.app/"
 #define FIREBASE_AUTH   "database_secret_atau_api_key"
 
 // ===== Pin Definitions =====
