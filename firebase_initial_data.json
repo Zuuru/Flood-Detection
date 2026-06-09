@@ -1,0 +1,28 @@
+{
+  "sensor": {
+    "jarak_cm": 150.5,
+    "status": "AMAN",
+    "timestamp": 1623456789000
+  },
+  "history": {
+    "1623456789000": {
+      "jarak_cm": 150.5,
+      "status": "AMAN",
+      "timestamp": 1623456789000
+    },
+    "1623456794000": {
+      "jarak_cm": 148.2,
+      "status": "AMAN",
+      "timestamp": 1623456794000
+    },
+    "1623456799000": {
+      "jarak_cm": 145.8,
+      "status": "AMAN",
+      "timestamp": 1623456799000
+    }
+  },
+  "config": {
+    "alert_threshold": 85,
+    "alert_cooldown_minutes": 10
+  }
+}
