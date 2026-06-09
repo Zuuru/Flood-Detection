@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FloodMonitor Semarang</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- ApexCharts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkblue: '#1B2130', 
+                        panelblue: '#232D42', 
+                        beigecard: '#EADBC8', 
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1B2130; }
+        ::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 4px; }
+        
+        .glass-header {
+            background: #232D42; /* Sesuai panel blue */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-darkblue text-white font-sans antialiased min-h-screen p-4 md:p-6">
+
+    <!-- Header dengan Background -->
+    <header class="glass-header rounded-2xl p-4 mb-6 flex justify-between items-center border border-gray-700">
+        <div class="flex items-center space-x-2 sm:space-x-4">
+            <div class="bg-blue-600 p-2 sm:p-2.5 rounded-xl shadow-lg">
+                <svg class="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+            </div>
+            <div>
+                <h1 class="text-sm sm:text-2xl font-bold tracking-tight text-white leading-tight">FloodMonitor Semarang</h1>
+                <p class="text-[10px] sm:text-xs text-gray-400 mt-1">Sistem Deteksi Dini Banjir Berbasis IoT</p>
+            </div>
+        </div>
+        
+        <div class="text-right">
+            <div class="text-sm sm:text-3xl font-mono font-bold text-beigecard" id="clock">00:00:00</div>
+            <div class="text-[10px] sm:text-xs text-gray-400 mt-1" id="date-display">Senin, 1 Jan 2024</div>
+        </div>
+    </header>
+
+    <!-- Grid Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <div class="relative bg-panelblue rounded-3xl overflow-hidden shadow-2xl border border-gray-700 h-[300px] lg:h-[400px] lg:col-span-8 order-1">
+            <iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" 
+                src="https://www.openstreetmap.org/export/embed.html?bbox=110.430%2C-7.057%2C110.440%2C-7.047&amp;layer=mapnik&amp;marker=-7.0523%2C110.4356" 
+                class="filter brightness-75 contrast-125">
+            </iframe>
+            
+            <div class="absolute bottom-4 left-4 right-4 bg-gray-900/80 backdrop-blur-sm rounded-full p-2 sm:p-4 flex justify-between items-center border border-gray-600 shadow-lg gap-1 sm:gap-4 px-2 sm:px-8 overflow-x-auto whitespace-nowrap">
+                
+                <div class="flex flex-col text-center sm:text-left">
+                    <span class="text-gray-400 text-[6px] sm:text-xs uppercase">Lokasi Sensor</span>
+                    <span class="font-bold text-[8px] sm:text-lg">Polines, Semarang</span>
+                </div>
+                
+                <div class="flex flex-col text-center sm:text-left">
+                    <span class="text-gray-400 text-[6px] sm:text-xs uppercase">Update Terakhir</span>
+                    <span class="font-mono font-bold text-[8px] sm:text-lg" id="map-last-update">--:--:--</span>
+                </div>
+                
+                <div class="flex flex-col text-center sm:text-left">
+                    <span class="text-gray-400 text-[6px] sm:text-xs uppercase">Status Device</span>
+                    <span class="font-bold text-[8px] sm:text-lg text-green-400" id="map-status-conn">Menghubungkan...</span>
+                </div>
+                
+                <div class="flex flex-col text-center sm:text-left">
+                    <span class="text-gray-400 text-[6px] sm:text-xs uppercase">ID Perangkat</span>
+                    <span class="font-bold text-[8px] sm:text-lg text-blue-300" id="map-device-id">--</span>
+                </div>
+                
+                <div class="flex flex-col text-center sm:text-left">
+                    <span class="text-gray-400 text-[6px] sm:text-xs uppercase block">Tingkat Risiko</span>
+                    <span class="font-bold text-[8px] sm:text-xl text-green-400" id="map-risk-level">Menunggu...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-4 lg:col-span-4 order-2">
+            <div class="bg-beigecard text-gray-900 rounded-3xl p-6 shadow-lg relative overflow-hidden transition-transform hover:scale-[1.02]">
+                <div class="relative z-10">
+                    <div class="flex items-baseline space-x-1">
+                        <span class="text-6xl font-bold tracking-tighter" id="card-current">0</span>
+                        <span class="text-xl font-semibold opacity-70">cm</span>
+                    </div>
+                    <p class="mt-2 text-sm font-bold opacity-80 uppercase tracking-wide">Ketinggian Air Saat Ini</p>
+                </div>
+                <div class="absolute -right-6 -top-6 w-32 h-32 bg-white opacity-40 rounded-full blur-2xl"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gray-200 text-gray-800 rounded-3xl p-5 shadow-lg">
+                    <span class="text-3xl font-bold block" id="card-max">0</span>
+                    <span class="text-xs font-bold text-gray-500 uppercase">Max Record (cm)</span>
+                </div>
+                <div class="bg-gray-200 text-gray-800 rounded-3xl p-5 shadow-lg">
+                    <span class="text-3xl font-bold block" id="card-mean">0</span>
+                    <span class="text-xs font-bold text-gray-500 uppercase">Rata-rata (cm)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-panelblue rounded-3xl p-6 shadow-xl border border-gray-700 lg:col-span-8 order-3">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-gray-200">Tren Ketinggian Air (Real-time)</h3>
+                <span class="text-xs text-gray-400 bg-gray-700 px-2 py-1 rounded">Update tiap 2 detik</span>
+            </div>
+            <div id="chartLevel" class="w-full h-[300px]"></div>
+        </div>
+
+        <div class="bg-panelblue rounded-3xl p-6 flex-grow border border-gray-700 shadow-xl overflow-hidden flex flex-col h-[350px] lg:h-[500px] lg:col-span-4 order-4">
+            <h3 class="text-xl font-semibold mb-4 text-gray-200">Riwayat Data</h3>
+            <div class="overflow-y-auto flex-grow pr-1">
+                <table class="w-full text-left border-collapse">
+                    <thead class="sticky top-0 bg-panelblue z-10 text-gray-400 text-xs uppercase tracking-wider border-b border-gray-600">
+                        <tr>
+                            <th class="pb-3 pl-2 font-medium">Waktu</th>
+                            <th class="pb-3 text-center font-medium">Level (%)</th>
+                            <th class="pb-3 text-center font-medium">Status</th> <th class="pb-3 text-right font-medium">Jarak (cm)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="text-sm divide-y divide-gray-700/50">
+                        <tr><td colspan="4" class="text-center py-4 text-gray-500">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        // 1. Clock
+        function updateClock() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
+            document.getElementById('clock').innerText = now.toLocaleTimeString('id-ID', { hour12: false });
+            document.getElementById('date-display').innerText = now.toLocaleDateString('id-ID', options);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // 2. Chart Setup
+        const chartOptions = {
+            series: [{ name: 'Ketinggian Air', data: [] }],
+            chart: {
+                type: 'area',
+                height: 300,
+                background: 'transparent',
+                toolbar: { show: false },
+                animations: { enabled: false } // Disable anim agar tidak berat saat update cepat
+            },
+            colors: ['#60A5FA'],
+            stroke: { curve: 'smooth', width: 2 },
+            fill: { type: 'gradient', gradient: { opacityFrom: 0.5, opacityTo: 0.05 } },
+            dataLabels: { enabled: false },
+            grid: { borderColor: '#374151', strokeDashArray: 4 },
+            xaxis: {
+                type: 'datetime',
+                labels: { style: { colors: '#9CA3AF' }, format: 'HH:mm' },
+                tooltip: { enabled: false }
+            },
+            yaxis: {
+                labels: { style: { colors: '#9CA3AF' } }
+            },
+            theme: { mode: 'dark' }
+        };
+        const chart = new ApexCharts(document.querySelector("#chartLevel"), chartOptions);
+        chart.render();
+
+        // 3. Logic Fetch Data
+        async function updateDashboard() {
+            try {
+                // A. Ambil Logs (Data History & Grafik)
+                const logRes = await fetch('/api/logs?limit=50');
+                const logData = await logRes.json();
+
+                // Debugging: Cek di Console Browser (F12) jika data masih kosong
+                // console.log("Data Logs:", logData);
+
+                if (logData && logData.length > 0) {
+                    const latest = logData[0];
+                    const tableBody = document.getElementById('table-body');
+                    
+                    // --- UPDATE INFO MAP (5 ITEMS) ---
+                    // 1. Lokasi: Static (Semarang)
+                    
+                    // 2. Update Terakhir
+                    const lastDate = new Date(latest.ts * 1000);
+                    const lastTimeStr = lastDate.toLocaleTimeString('id-ID', {hour12: false});
+                    document.getElementById('map-last-update').innerText = lastTimeStr;
+
+                    // 3. Status Device (Cek Offline > 5 menit)
+                    const nowSec = Math.floor(Date.now() / 1000);
+                    const isOffline = (nowSec - latest.ts) > 300;
+                    const statusConn = document.getElementById('map-status-conn');
+                    // BASE CLASS: text-[8px] di mobile, sm:text-lg di desktop
+                    const statusBaseClass = "font-bold text-[8px] sm:text-lg"; 
+                    if (isOffline) {
+                        statusConn.innerText = "OFFLINE";
+                        // Menggunakan BASE CLASS + warna
+                        statusConn.className = `${statusBaseClass} text-gray-500`; 
+                    } else {
+                        statusConn.innerText = "ONLINE";
+                        // Menggunakan BASE CLASS + warna
+                        statusConn.className = `${statusBaseClass} text-green-400`;
+                    }
+
+                    // 4. Device ID
+                    document.getElementById('map-device-id').innerText = latest.device_id || 'Unknown';
+
+                    // 5. Tingkat Risiko
+                    const riskEl = document.getElementById('map-risk-level');
+                    const riskPct = latest.level_percent;
+                    // BASE CLASS: text-[8px] di mobile, sm:text-xl di desktop
+                    const riskBaseClass = "font-bold text-[8px] sm:text-xl"; 
+
+                    if (riskPct >= 85) {
+                        riskEl.innerText = "AWAS";
+                        // Menggunakan BASE CLASS + warna + animasi
+                        riskEl.className = `${riskBaseClass} text-red-500 animate-pulse`; 
+                    } else if (riskPct >= 75) {
+                        riskEl.innerText = "SIAGA";
+                        // Menggunakan BASE CLASS + warna
+                        riskEl.className = `${riskBaseClass} text-orange-500`; 
+                    } else if (riskPct >= 60) {
+                        riskEl.innerText = "WASPADA";
+                        // Menggunakan BASE CLASS + warna
+                        riskEl.className = `${riskBaseClass} text-yellow-400`; 
+                    } else {
+                        riskEl.innerText = "AMAN";
+                        // Menggunakan BASE CLASS + warna
+                        riskEl.className = `${riskBaseClass} text-green-400`; 
+                    }
+
+                    // Update Tabel History
+                    tableBody.innerHTML = '';
+                    logData.slice(0, 15).forEach(row => { // Ambil 15 data teratas
+                        const date = new Date(row.ts * 1000);
+                        const timeStr = date.toLocaleTimeString('id-ID', {hour12: false});
+                        
+                        // Logic Status Warna-Warni
+                        let statusHtml = '';
+                        const pct = row.level_percent;
+                        
+                        if (pct >= 85) {
+                            // MERAH - AWAS
+                            statusHtml = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-900 text-red-200">AWAS</span>`;
+                        } else if (pct >= 75) {
+                            // ORANYE - SIAGA
+                            statusHtml = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-900 text-orange-200">SIAGA</span>`;
+                        } else if (pct >= 60) {
+                            // KUNING - WASPADA
+                            statusHtml = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-900 text-yellow-200">WASPADA</span>`;
+                        } else {
+                            // HIJAU - AMAN
+                            statusHtml = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900 text-green-200">AMAN</span>`;
+                        }
+
+                        // Jarak fallback ke 0 jika undefined
+                        const dist = row.ultrasonic_cm !== undefined ? row.ultrasonic_cm : 0;
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="py-3 pl-2 text-gray-400 font-mono text-xs">${timeStr}</td>
+                            <td class="py-3 text-center text-gray-200 font-bold">${pct}%</td>
+                            <td class="py-3 text-center">${statusHtml}</td>
+                            <td class="py-3 text-right text-gray-300">${dist}</td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+
+                    // Update Grafik
+                    // Format ApexCharts: [timestamp_ms, value]
+                    // Reverse agar dari kiri ke kanan
+                    const chartData = logData.map(d => [d.ts * 1000, d.ultrasonic_cm]).reverse();
+                    chart.updateSeries([{ data: chartData }]);
+
+                    // Update Card Utama (Current)
+                    document.getElementById('card-current').innerText = latest.ultrasonic_cm;
+                }
+
+                // B. Ambil Statistik (Min, Max, Mean)
+                const statRes = await fetch('/api/stats?hours=24');
+                const statJson = await statRes.json();
+                
+                if (statJson.ok) {
+                    const s = statJson.stats;
+                    // Hati-hati: backend menghitung stats berdasarkan 'level_percent'
+                    // Jika Anda ingin menampilkan CM di card Max/Mean, Anda perlu logika backend tambahan.
+                    // Saat ini kita tampilkan apa yang dikirim backend.
+                    
+                    // Kita gunakan 'level_percent' untuk stats karena backend menghitung itu.
+                    // Atau jika ingin CM, kita hitung manual sebentar dari LogData di Javascript (Simple way)
+                    
+                    if (logData && logData.length > 0) {
+                        // Hitung manual Max & Mean dari CM (karena backend kirim stats %, bukan CM)
+                        const cmValues = logData.map(d => d.ultrasonic_cm).filter(v => v > 0);
+                        if (cmValues.length > 0) {
+                            const maxCM = Math.max(...cmValues);
+                            const sumCM = cmValues.reduce((a, b) => a + b, 0);
+                            const meanCM = (sumCM / cmValues.length).toFixed(1);
+                            
+                            document.getElementById('card-max').innerText = maxCM;
+                            document.getElementById('card-mean').innerText = meanCM;
+                        }
+                    }
+                }
+
+            } catch (err) {
+                console.error("Gagal update dashboard:", err);
+            }
+        }
+
+        // Jalankan Loop
+        setInterval(updateDashboard, 2000);
+        updateDashboard();
+    </script>
+</body>
+</html>
