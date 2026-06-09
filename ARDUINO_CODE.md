@@ -7,7 +7,6 @@ Install semua library berikut melalui **Arduino IDE → Library Manager** (`Ctrl
 | Library | Versi | Fungsi |
 |---------|-------|--------|
 | `Firebase ESP32 Client` | ≥ 4.x | Koneksi ke Firebase |
-| `LoRa` by Sandeep Mistry | ≥ 0.8 | Komunikasi LoRa |
 | `NewPing` | ≥ 1.9 | Sensor ultrasonik HC-SR04 |
 
 Tambahkan board ESP32 melalui **Board Manager**:
@@ -78,8 +77,6 @@ firmware/
 #include <WiFi.h>
 #include <FirebaseESP32.h>
 #include <NewPing.h>
-#include <SPI.h>
-#include <LoRa.h>
 #include "config.h"
 
 // ===== Objek Firebase =====
@@ -126,14 +123,7 @@ void setup() {
   Firebase.reconnectWiFi(true);
   Serial.println("Firebase siap.");
 
-  // Inisialisasi LoRa
-  SPI.begin(LORA_SCK, LORA_MISO, LORA_MOSI, LORA_SS);
-  LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
-  if (!LoRa.begin(433E6)) {
-    Serial.println("LoRa gagal diinisialisasi!");
-  } else {
-    Serial.println("LoRa siap.");
-  }
+  // LoRa telah dihapus pada konfigurasi proyek ini.
 }
 
 // ============================================================
@@ -156,7 +146,6 @@ void loop() {
   if (millis() - lastSendTime >= INTERVAL_KIRIM) {
     lastSendTime = millis();
     kirimKeFirebase(jarakCm, statusBanjir);
-    kirimLoRa(jarakCm, statusBanjir);
   }
 
   delay(1000);

@@ -2,7 +2,6 @@
 #include <FirebaseESP32.h>
 #include <NewPing.h>
 #include <SPI.h>
-#include <LoRa.h>
 #include "config.h"
 
 FirebaseData fbData;
@@ -42,13 +41,7 @@ void setup() {
   Firebase.reconnectWiFi(true);
   Serial.println("Firebase siap.");
 
-  SPI.begin(LORA_SCK, LORA_MISO, LORA_MOSI, LORA_SS);
-  LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
-  if (!LoRa.begin(433E6)) {
-    Serial.println("LoRa gagal diinisialisasi!");
-  } else {
-    Serial.println("LoRa siap.");
-  }
+  // LoRa removed per project configuration. Skipping LoRa initialization.
 }
 
 void loop() {
@@ -66,7 +59,6 @@ void loop() {
   if (millis() - lastSendTime >= INTERVAL_KIRIM) {
     lastSendTime = millis();
     kirimKeFirebase(jarakCm, statusBanjir);
-    kirimLoRa(jarakCm, statusBanjir);
   }
 
   delay(1000);
@@ -135,13 +127,3 @@ void kirimKeFirebase(float jarak, String status) {
   }
 }
 
-void kirimLoRa(float jarak, String status) {
-  String pesan = "JARAK:" + String(jarak) + ",STATUS:" + status;
-
-  LoRa.beginPacket();
-  LoRa.print(pesan);
-  LoRa.endPacket();
-
-  Serial.print("LoRa dikirim: ");
-  Serial.println(pesan);
-}

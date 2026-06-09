@@ -17,13 +17,7 @@
 #define LED_MERAH       27
 #define BUZZER_PIN      14
 
-// ===== LoRa Pin =====
-#define LORA_SCK        18
-#define LORA_MISO       19
-#define LORA_MOSI       23
-#define LORA_SS         5
-#define LORA_RST        4
-#define LORA_DIO0       2
+// LoRa disabled: module removed per project configuration
 
 // ===== Threshold Jarak (cm) =====
 #define JARAK_AMAN      150   // > 150 cm = Aman

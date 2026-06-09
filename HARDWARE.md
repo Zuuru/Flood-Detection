@@ -5,7 +5,7 @@
 | No | Komponen | Spesifikasi | Fungsi |
 |----|----------|-------------|--------|
 | 1 | ESP32 | 38-pin / 30-pin | Mikrokontroler utama, WiFi, kontrol semua perangkat |
-| 2 | Modul LoRa | SX1278 / Ra-02 433MHz | Transmisi data jarak jauh (opsional) |
+| 2 | Modul LoRa | *Dihapus dari proyek* | Tidak digunakan (LoRa dinonaktifkan) |
 | 3 | Sensor Ultrasonik | HC-SR04 | Mengukur jarak permukaan air ke sensor |
 | 4 | LED Hijau | 5mm | Indikator status Aman |
 | 5 | LED Kuning | 5mm | Indikator status Siaga |
@@ -58,51 +58,29 @@ GPIO --> [220Ω] --> LED (Anoda) --> LED (Katoda) --> GND
 | + (positif) | GPIO 14 |
 | - (negatif) | GND |
 
-### Modul LoRa (SX1278 / Ra-02)
-
-| Pin LoRa | Pin ESP32 |
-|----------|-----------|
-| VCC | 3.3V |
-| GND | GND |
-| SCK | GPIO 18 (SPI CLK) |
-| MISO | GPIO 19 (SPI MISO) |
-| MOSI | GPIO 23 (SPI MOSI) |
-| NSS/CS | GPIO 5 |
-| RST | GPIO 4 |
-| DIO0 | GPIO 2 |
-
-> ⚠️ **Catatan:** Pin SPI untuk LoRa dan HC-SR04 dapat berbagi konfigurasi, pastikan tidak ada konflik pin. Sesuaikan jika perlu.
-
----
-
 ## Diagram Wiring (Deskriptif)
 
 ```
-                        +------------------+
-                        |      ESP32       |
-  HC-SR04               |                  |
-  --------              |  GPIO5  --> TRIG |
-  VCC  --> 5V           |  GPIO18 <-- ECHO |
-  GND  --> GND          |                  |
-  TRIG <-- GPIO5        |  GPIO25 --> LED Hijau --> 220Ω --> GND
-  ECHO --> GPIO18*      |  GPIO26 --> LED Kuning -> 220Ω --> GND
-                        |  GPIO27 --> LED Merah --> 220Ω --> GND
-  LoRa SX1278           |  GPIO14 --> Buzzer (+) --> GND
-  -----------           |                  |
-  VCC  --> 3.3V         |  GPIO18 --> SCK  | (SPI - LoRa)
-  GND  --> GND          |  GPIO19 --> MISO |
-  SCK  --> GPIO18       |  GPIO23 --> MOSI |
-  MISO --> GPIO19       |  GPIO5  --> NSS  |
-  MOSI --> GPIO23       |  GPIO4  --> RST  |
-  NSS  --> GPIO5        |  GPIO2  --> DIO0 |
-  RST  --> GPIO4        |                  |
-  DIO0 --> GPIO2        +------------------+
-                              |   |
-                            3.3V  GND
-                              |
-                        Panel Surya
-                        + Baterai
-                        (melalui modul TP4056 / charging module)
+                                                            +------------------+
+                                                            |      ESP32       |
+     HC-SR04               |                  |
+     --------              |  GPIO5  --> TRIG |
+     VCC  --> 5V           |  GPIO18 <-- ECHO |
+     GND  --> GND          |                  |
+     TRIG <-- GPIO5        |  GPIO25 --> LED Hijau --> 220Ω --> GND
+     ECHO --> GPIO18*      |  GPIO26 --> LED Kuning -> 220Ω --> GND
+                                                            |  GPIO27 --> LED Merah --> 220Ω --> GND
+                                                            |  GPIO14 --> Buzzer (+) --> GND
+                                                            |                  |
+                                                            |                  |
+                                                            |                  |
+                                                            +------------------+
+                                                                           |   |
+                                                                      3.3V  GND
+                                                                           |
+                                                            Panel Surya
+                                                            + Baterai
+                                                            (melalui modul TP4056 / charging module)
 ```
 
 ---
