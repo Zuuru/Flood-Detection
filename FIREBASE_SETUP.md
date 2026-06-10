@@ -30,8 +30,12 @@ Paste struktur berikut ke Firebase Console sebagai initial data:
     }
   },
   "config": {
-    "alert_threshold": 85,
-    "alert_cooldown_minutes": 10
+    "system_alerts": true,
+    "warning_threshold_cm": 200,
+    "emergency_threshold_cm": 100,
+    "push_notification": true,
+    "sms_alert": true,
+    "sound_siren": false
   }
 }
 ```
@@ -44,8 +48,7 @@ Paste struktur berikut ke Firebase Console sebagai initial data:
 | `/sensor/status` | string | Status: `AMAN`, `SIAGA`, `EVAKUASI` |
 | `/sensor/timestamp` | integer | Unix timestamp pengukuran terakhir (ms) |
 | `/history/{timestamp}` | JSON | Penyimpanan history dengan key = timestamp |
-| `/config/alert_threshold` | integer | Threshold alert (persentase) |
-| `/config/alert_cooldown_minutes` | integer | Cooldown antar alert (menit) |
+| `/config/*` | varies | Pengaturan ambang batas dan notifikasi |
 
 ---
 
