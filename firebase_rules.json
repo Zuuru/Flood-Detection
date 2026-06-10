@@ -1,0 +1,28 @@
+{
+  "rules": {
+    "sensor": {
+      ".read": true,
+      ".write": true,
+      "jarak_cm": {
+        ".validate": "newData.isNumber()"
+      },
+      "status": {
+        ".validate": "newData.isString()"
+      },
+      "timestamp": {
+        ".validate": "newData.isNumber()"
+      }
+    },
+    "history": {
+      ".read": true,
+      ".write": true,
+      "$timestamp": {
+        ".validate": "newData.hasChildren(['jarak_cm', 'status', 'timestamp'])"
+      }
+    },
+    "config": {
+      ".read": true,
+      ".write": false
+    }
+  }
+}
