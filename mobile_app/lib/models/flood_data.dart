@@ -5,15 +5,19 @@ enum FloodStatus { safe, warning, danger }
 class FloodData {
   final double distanceCm;
   final DateTime timestamp;
+  final double warningThreshold;
+  final double emergencyThreshold;
 
   FloodData({
     required this.distanceCm,
     required this.timestamp,
+    this.warningThreshold = 150.0,
+    this.emergencyThreshold = 80.0,
   });
 
   FloodStatus get status {
-    if (distanceCm <= 60) return FloodStatus.danger;
-    if (distanceCm <= 120) return FloodStatus.warning;
+    if (distanceCm <= emergencyThreshold) return FloodStatus.danger;
+    if (distanceCm <= warningThreshold) return FloodStatus.warning;
     return FloodStatus.safe;
   }
 

@@ -1,7 +1,31 @@
 import 'package:flutter/material.dart';
+import '../models/flood_data.dart';
+import '../services/firebase_service.dart';
 
-class LogsScreen extends StatelessWidget {
+class LogsScreen extends StatefulWidget {
   const LogsScreen({super.key});
+
+  @override
+  State<LogsScreen> createState() => _LogsScreenState();
+}
+
+class _LogsScreenState extends State<LogsScreen> {
+  final FirebaseService _firebaseService = FirebaseService();
+
+  @override
+  void dispose() {
+    _firebaseService.dispose();
+    super.dispose();
+  }
+
+  String _formatDate(DateTime date) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${date.day} ${months[date.month - 1]}';
+  }
+
+  String _formatTime(DateTime date) {
+    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,30 +130,55 @@ class LogsScreen extends StatelessWidget {
         children: [
           _buildTableHeader(),
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.only(bottom: 120.0),
-              children: [
-                _buildLogEntry('12 Oct', '14:30:45', '345 cm', 'AMAN', const Color(0xFF32D74B)),
-                _buildLogEntry('12 Oct', '14:15:20', '410 cm', 'SIAGA', const Color(0xFFFFD60A)),
-                _buildLogEntry('12 Oct', '13:50:11', '650 cm', 'EVAKUASI', const Color(0xFFFF453A)),
-                _buildLogEntry('12 Oct', '12:30:00', '320 cm', 'AMAN', const Color(0xFF32D74B)),
-                _buildLogEntry('11 Oct', '22:15:45', '300 cm', 'AMAN', const Color(0xFF32D74B)),
-                const SizedBox(height: 24),
-                Center(
-                  child: TextButton(
-                    onPressed: () {},
-                    child: const Text(
-                      'Load More',
-                      style: TextStyle(
-                        fontFamily: 'Inter',
-                        fontSize: 16,
-                        color: Color(0xFF32D74B),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-              ],
+            child: StreamBuilder<List<FloodData>>(
+              stream: _firebaseService.historyStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator(color: Color(0xFF32D74B)));
+                }
+                
+                final historyList = snapshot.data ?? [];
+                
+                if (historyList.isEmpty) {
+                  return const Center(child: Text('No history found', style: TextStyle(color: Colors.white)));
+                }
+                
+                return ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 120.0),
+                  itemCount: historyList.length + 1, // +1 for the load more button
+                  itemBuilder: (context, index) {
+                    if (index == historyList.length) {
+                      return Column(
+                        children: [
+                          const SizedBox(height: 24),
+                          Center(
+                            child: TextButton(
+                              onPressed: () {},
+                              child: const Text(
+                                'Load More',
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 16,
+                                  color: Color(0xFF32D74B),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      );
+                    }
+                    final data = historyList[index];
+                    return _buildLogEntry(
+                      _formatDate(data.timestamp),
+                      _formatTime(data.timestamp),
+                      '${data.distanceCm.toStringAsFixed(1)} cm',
+                      data.statusLabel.toUpperCase(),
+                      data.statusColor,
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],

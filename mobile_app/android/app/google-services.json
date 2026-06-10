@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "951794221378",
+    "firebase_url": "https://flood-detection-6299c-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "flood-detection-6299c",
+    "storage_bucket": "flood-detection-6299c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:951794221378:android:bc74f7291e2ceabf8d48db",
+        "android_client_info": {
+          "package_name": "com.example.mobile_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAFS2KduxYqJzAjUvc9KPWA-cUdij-lLJk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

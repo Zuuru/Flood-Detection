@@ -34,6 +34,8 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  firebase_core: ^4.10.0
+  firebase_database: ^12.4.2
 
 dev_dependencies:
   flutter_test:
@@ -580,3 +582,163 @@ flutter:
 #     # --- DESIGN SYSTEM TYPOGRAPHY ---
 #     style_label:
 #
+#settings page
+## metadata:
+#   name: tubes_settings
+#   components: {}
+#   componentSets: {}
+# nodes:
+#   - id: '2:155'
+#     name: settings
+#     type: FRAME
+#     fills: color_1C1C1E
+#     children:
+#       
+#       # --- 1. HEADER SECTION ---
+#       - id: '2:156'
+#         name: Header
+#         type: FRAME
+#         children:
+#           - id: '2:158'
+#             name: Back Button
+#             type: FRAME
+#             children:
+#               - id: '2:160'
+#                 name: Icon Back
+#                 type: VECTOR
+#                 fills: color_DFE3E7
+#           - id: '2:162'
+#             name: Heading 1 → Alert Settings
+#             type: TEXT
+#             fills: color_DFE3E7
+#             text: Alert Settings
+#             textStyle: style_headline
+#
+#       # --- 2. MAIN CONTENT CANVAS ---
+#       - id: '2:163'
+#         name: Main Content Canvas
+#         type: FRAME
+#         children:
+#
+#           # --- A. MASTER TOGGLE CARD ---
+#           - id: '2:164'
+#             name: Section - Master Toggle Card
+#             type: FRAME
+#             fills: color_1B2023
+#             borderRadius: 12px
+#             children:
+#               - id: '2:168'
+#                 name: Text System Alerts
+#                 type: TEXT
+#                 text: System Alerts
+#               - id: '2:171'
+#                 name: Master switch subtitle
+#                 type: TEXT
+#                 fills: color_neutral
+#                 text: Master switch for all notifications
+#               - id: '2:172'
+#                 name: Toggle Switch (Active)
+#                 type: FRAME
+#                 children:
+#                   - id: '2:173'
+#                     name: Background Active
+#                     type: RECTANGLE
+#                     fills: color_secondary # Hijau (Aktif)
+#
+#           # --- B. THRESHOLD SETTINGS CARD ---
+#           - id: '2:175'
+#             name: Section - Threshold Settings Card
+#             type: FRAME
+#             fills: color_1B2023
+#             borderRadius: 12px
+#             children:
+#               - id: '2:177'
+#                 name: Heading Threshold Calibration
+#                 type: TEXT
+#                 text: Threshold Calibration
+#               
+#               # Warning Threshold (SIAGA)
+#               - id: '2:178'
+#                 name: Warning Threshold
+#                 type: FRAME
+#                 children:
+#                   - id: '2:184'
+#                     name: Text WARNING (SIAGA)
+#                     type: TEXT
+#                     fills: color_tertiary # Kuning
+#                     text: WARNING (SIAGA)
+#                   - id: '2:186'
+#                     name: Text Value 200 cm
+#                     type: TEXT
+#                     text: '200'
+#                   - id: '2:188'
+#                     name: Neon Slider Component
+#                     type: FRAME
+#                     # (Isi detail slider disembunyikan agar rapi)
+#
+#               # Emergency Threshold (EVAKUASI)
+#               - id: '2:200'
+#                 name: Emergency Threshold
+#                 type: FRAME
+#                 children:
+#                   - id: '2:207'
+#                     name: Text EMERGENCY (EVAKUASI)
+#                     type: TEXT
+#                     fills: color_error # Merah / FFB4AB
+#                     text: EMERGENCY (EVAKUASI)
+#                   - id: '2:209'
+#                     name: Text Value 100 cm
+#                     type: TEXT
+#                     text: '100'
+#                   - id: '2:211'
+#                     name: Neon Slider Component
+#                     type: FRAME
+#                     # (Isi detail slider disembunyikan agar rapi)
+#
+#           # --- C. DELIVERY METHODS CARD ---
+#           - id: '2:223'
+#             name: Section - Delivery Methods Card
+#             type: FRAME
+#             fills: color_1B2023
+#             borderRadius: 12px
+#             children:
+#               - id: '2:225'
+#                 name: Heading Delivery Methods
+#                 type: TEXT
+#                 text: Delivery Methods
+#               
+#               # Push Notification
+#               - id: '2:226'
+#                 name: Push Notification Option
+#                 type: FRAME
+#                 children:
+#                   - id: '2:232'
+#                     name: Text Push Notification
+#                     type: TEXT
+#                     text: Push Notification
+#                   - id: '2:233'
+#                     name: Toggle Switch (Active)
+#                     type: FRAME
+#                     children:
+#                       - id: '2:234'
+#                         name: Background Active
+#                         type: RECTANGLE
+#                         fills: color_secondary # Hijau (Aktif)
+#
+#               # SMS Alert
+#               - id: '2:236'
+#                 name: SMS Alert Option
+#                 type: FRAME
+#                 children:
+#                   - id: '2:242'
+#                     name: Text SMS Alert
+#                     type: TEXT
+#                     text: SMS Alert
+#                   - id: '2:253'
+#                     name: Toggle Switch (Inactive)
+#                     type: FRAME
+#                     children:
+#                       - id: '2:254'
+#                         name: Background Inactive
+#                         type: RECTANGLE
+#                         fills: color_303538 # Abu-abu gelap (Non-aktif)

@@ -1,31 +1,64 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import '../services/firebase_service.dart';
+import '../models/flood_data.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final FirebaseService _firebaseService = FirebaseService();
+
+  @override
+  void dispose() {
+    _firebaseService.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black, // From design
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 24.0, bottom: 120.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 32),
-              _buildStatusSection(),
-              const SizedBox(height: 32),
-              _buildPrimaryMetricCard(),
-              const SizedBox(height: 16),
-              _buildStatsGrid(),
-              const SizedBox(height: 16),
-              _buildAnalysisSection(),
-              // Bottom Nav will be handled in a separate file/wrapper
-            ],
-          ),
+        child: StreamBuilder<FloodData>(
+          stream: _firebaseService.floodDataStream,
+          builder: (context, snapshot) {
+            final floodData = snapshot.data;
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 24.0, bottom: 120.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(),
+                  const SizedBox(height: 32),
+                  _buildStatusSection(floodData),
+                  const SizedBox(height: 32),
+                  _buildPrimaryMetricCard(floodData),
+                  const SizedBox(height: 16),
+                  StreamBuilder<List<FloodData>>(
+                    stream: _firebaseService.historyStream,
+                    builder: (context, historySnapshot) {
+                      final history = historySnapshot.data ?? [];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildStatsGrid(history),
+                          const SizedBox(height: 16),
+                          _buildAnalysisSection(history),
+                        ],
+                      );
+                    }
+                  ),
+                  // Bottom Nav will be handled in a separate file/wrapper
+                ],
+              ),
+            );
+          }
         ),
       ),
     );
@@ -92,81 +125,67 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusSection() {
+  Widget _buildStatusSection(FloodData? data) {
+    final statusText = data?.statusLabel ?? 'Loading...';
+    final statusColor = data?.statusColor ?? Colors.grey;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         RichText(
-          text: const TextSpan(
-            style: TextStyle(
+          text: TextSpan(
+            style: const TextStyle(
               fontFamily: 'Inter',
               fontSize: 24,
               fontWeight: FontWeight.w700,
               color: Colors.white,
             ),
             children: [
-              TextSpan(text: 'Flood Level is '),
+              const TextSpan(text: 'Flood Level is '),
               TextSpan(
-                text: 'Normal',
-                style: TextStyle(color: Color(0xFF32D74B)),
+                text: statusText,
+                style: TextStyle(color: statusColor),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.end,
-          children: const [
-            Text(
-              'Battery..',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 32,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-              ),
-            ),
-            Text(
-              '75%',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 32,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-              ),
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Tank',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 24,
+                    color: Colors.white70,
+                  ),
+                ),
+                Text(
+                  '--',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 64,
+                    fontWeight: FontWeight.w900,
+                    height: 1.0,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: List.generate(6, (index) {
-            // Colors for segmented battery bar
-            List<Color> colors = [
-              const Color(0xFF26B5A1),
-              const Color(0xFF3CD1B9),
-              const Color(0xFF48DF91),
-              const Color(0xFF48DF91),
-              const Color(0xFF1A3D24),
-              const Color(0xFF1A3D24),
-            ];
-            return Expanded(
-              child: Container(
-                margin: EdgeInsets.only(right: index < 5 ? 6 : 0),
-                height: 32,
-                decoration: BoxDecoration(
-                  color: colors[index],
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-            );
-          }),
         ),
       ],
     );
   }
 
-  Widget _buildPrimaryMetricCard() {
+  Widget _buildPrimaryMetricCard(FloodData? data) {
+    final distanceStr = data != null ? data.distanceCm.toStringAsFixed(1) : '--';
+    
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -182,18 +201,18 @@ class HomeScreen extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
-                children: const [
+                children: [
                   Text(
-                    '346',
-                    style: TextStyle(
+                    distanceStr,
+                    style: const TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 36,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
-                  Text(
-                    ' /2347 cm',
+                  const Text(
+                    ' cm',
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 16,
@@ -214,17 +233,60 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
           // Water tank with wave animation
-          const SizedBox(
+          SizedBox(
             width: 80,
             height: 60,
-            child: AnimatedWaterTank(),
+            child: AnimatedWaterTank(
+              fillPercentage: data?.dangerProgress ?? 0.0,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStatsGrid() {
+  Widget _buildStatsGrid(List<FloodData> history) {
+    String rateStr = '--';
+    List<double> barHeights = List.filled(9, 4.0); // Default to empty lines
+
+    if (history.length >= 2) {
+      // Calculate average rate across the entire history range
+      final latest = history.first;
+      final oldest = history.last;
+      final deltaDist = oldest.distanceCm - latest.distanceCm; // positive = water rising
+      final deltaSec = latest.timestamp.difference(oldest.timestamp).inSeconds;
+      
+      if (deltaSec > 0) {
+        final avgRatePerMin = (deltaDist / deltaSec) * 60;
+        rateStr = avgRatePerMin.toStringAsFixed(1);
+      } else {
+        rateStr = '0.0';
+      }
+
+      // Generate 9 bars
+      double maxRate = 1.0; // avoid division by zero
+      List<double> recentRates = [];
+      for (int i = 0; i < history.length - 1 && i < 9; i++) {
+        final curr = history[i];
+        final prev = history[i+1];
+        final dDist = prev.distanceCm - curr.distanceCm;
+        final dSec = curr.timestamp.difference(prev.timestamp).inSeconds;
+        if (dSec > 0) {
+          final rate = (dDist / dSec) * 60;
+          recentRates.add(rate.abs());
+          if (rate.abs() > maxRate) maxRate = rate.abs();
+        } else {
+          recentRates.add(0);
+        }
+      }
+      
+      recentRates = recentRates.reversed.toList(); // chronological
+      for (int i = 0; i < recentRates.length; i++) {
+        final scaled = (recentRates[i] / maxRate) * 40;
+        barHeights[i] = scaled < 4 ? 4 : scaled;
+      }
+    }
+
     return Row(
       children: [
         // Water Rise Rate Card
@@ -246,18 +308,18 @@ class HomeScreen extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
-                      children: const [
+                      children: [
                         Text(
-                          '+1.5',
-                          style: TextStyle(
+                          rateStr,
+                          style: const TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
                         ),
-                        SizedBox(width: 4),
-                        Text(
+                        const SizedBox(width: 4),
+                        const Text(
                           'cm/min',
                           style: TextStyle(
                             fontFamily: 'Inter',
@@ -278,58 +340,15 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                // Simple placeholder for bar chart
+                // Simple bar chart
                 SizedBox(
                   height: 40,
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildBar(15),
-                      _buildBar(18),
-                      _buildBar(22),
-                      _buildBar(12),
-                      _buildBar(16),
-                      _buildBar(25),
-                      _buildBar(20),
-                      _buildBar(28),
-                      _buildBar(35),
-                    ],
+                    children: barHeights.map((h) => _buildBar(h)).toList(),
                   ),
                 )
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        // Signal Trend Card
-        Expanded(
-          child: Container(
-            height: 160,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1C1C1E),
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Signal Strength\n& Trend',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 12,
-                    color: Colors.white,
-                  ),
-                ),
-                // Placeholder for line chart
-                SizedBox(
-                  height: 60,
-                  child: CustomPaint(
-                    painter: TrendLinePainter(),
-                  ),
-                ),
               ],
             ),
           ),
@@ -342,11 +361,48 @@ class HomeScreen extends StatelessWidget {
     return Container(
       width: 8,
       height: height,
-      color: Colors.white,
+      color: Colors.white.withValues(alpha: 0.3),
     );
   }
 
-  Widget _buildAnalysisSection() {
+  Widget _buildAnalysisSection(List<FloodData> history) {
+    String minStr = '-- cm';
+    String avgStr = '-- cm';
+    String maxStr = '-- cm';
+    String startLabel = 'Old';
+    String endLabel = 'New';
+    List<double> barHeights = List.filled(20, 4.0);
+    
+    if (history.isNotEmpty) {
+      double min = history[0].distanceCm;
+      double max = history[0].distanceCm;
+      double sum = 0;
+      
+      for (var d in history) {
+        if (d.distanceCm < min) min = d.distanceCm;
+        if (d.distanceCm > max) max = d.distanceCm;
+        sum += d.distanceCm;
+      }
+      
+      minStr = '${min.toStringAsFixed(1)} cm';
+      maxStr = '${max.toStringAsFixed(1)} cm';
+      avgStr = '${(sum / history.length).toStringAsFixed(1)} cm';
+      
+      final plotData = history.take(20).toList().reversed.toList();
+      double chartMax = max > 0 ? max : 1.0;
+      
+      for (int i = 0; i < plotData.length; i++) {
+        double scaled = (plotData[i].distanceCm / chartMax) * 120;
+        barHeights[i] = scaled < 4 ? 4 : scaled;
+      }
+      
+      String formatTime(DateTime dt) {
+        return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+      }
+      startLabel = formatTime(plotData.first.timestamp);
+      endLabel = formatTime(plotData.last.timestamp);
+    }
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -357,20 +413,21 @@ class HomeScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Water Level Analysis',
+            'Distance Analysis',
             style: TextStyle(
               fontFamily: 'Inter',
               fontSize: 16,
+              fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
           ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              _StatText(label: 'Min', value: '10cm'),
-              _StatText(label: 'Avg', value: '35cm'),
-              _StatText(label: 'Max', value: '80cm'),
+            children: [
+              _StatText(label: 'Min', value: minStr),
+              _StatText(label: 'Avg', value: avgStr),
+              _StatText(label: 'Max', value: maxStr),
             ],
           ),
           const SizedBox(height: 24),
@@ -381,16 +438,11 @@ class HomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: List.generate(20, (index) {
-                // Generate some random-looking heights
-                final heights = [
-                  15.0, 20.0, 40.0, 30.0, 15.0, 25.0, 35.0, 35.0, 50.0, 80.0,
-                  30.0, 60.0, 20.0, 30.0, 25.0, 45.0, 70.0, 60.0, 65.0, 100.0
-                ];
                 return Container(
                   width: 8,
-                  height: heights[index],
+                  height: barHeights[index],
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFD60A), // Yellow primary from design
+                    color: const Color(0xFFFFD60A).withValues(alpha: index >= 20 - (history.isEmpty ? 0 : history.length) ? 1.0 : 0.3), 
                     borderRadius: BorderRadius.circular(2),
                   ),
                 );
@@ -400,9 +452,9 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('Jan', style: TextStyle(color: Color(0xFF73787B), fontSize: 12)),
-              Text('Dec', style: TextStyle(color: Color(0xFF73787B), fontSize: 12)),
+            children: [
+              Text(startLabel, style: const TextStyle(color: Color(0xFF73787B), fontSize: 12)),
+              Text(endLabel, style: const TextStyle(color: Color(0xFF73787B), fontSize: 12)),
             ],
           ),
         ],
@@ -442,7 +494,12 @@ class _StatText extends StatelessWidget {
 }
 
 class AnimatedWaterTank extends StatefulWidget {
-  const AnimatedWaterTank({super.key});
+  final double fillPercentage;
+
+  const AnimatedWaterTank({
+    super.key,
+    this.fillPercentage = 0.0,
+  });
 
   @override
   State<AnimatedWaterTank> createState() => _AnimatedWaterTankState();
@@ -473,7 +530,10 @@ class _AnimatedWaterTankState extends State<AnimatedWaterTank>
       animation: _controller,
       builder: (context, child) {
         return CustomPaint(
-          painter: WaterTankPainter(animationValue: _controller.value),
+          painter: WaterTankPainter(
+            animationValue: _controller.value,
+            fillPercentage: widget.fillPercentage,
+          ),
         );
       },
     );
@@ -482,8 +542,12 @@ class _AnimatedWaterTankState extends State<AnimatedWaterTank>
 
 class WaterTankPainter extends CustomPainter {
   final double animationValue;
+  final double fillPercentage;
 
-  WaterTankPainter({required this.animationValue});
+  WaterTankPainter({
+    required this.animationValue,
+    required this.fillPercentage,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -523,7 +587,10 @@ class WaterTankPainter extends CustomPainter {
     canvas.drawPath(tankPath, paintLine);
 
     // Draw animated water wave
-    final waterLevel = tankRect.height * 0.4; // 60% full (y goes down)
+    // Use fillPercentage to determine water level (0.0 = empty, 1.0 = full)
+    // Map percentage to Y coordinate. 1.0 -> y=tankRect.top, 0.0 -> y=tankRect.bottom
+    final fillClamped = fillPercentage.clamp(0.0, 1.0);
+    final waterLevel = tankRect.bottom - (tankRect.height * fillClamped);
     final waveHeight = 4.0; // amplitude
     
     final waterPath = Path();
@@ -550,7 +617,8 @@ class WaterTankPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant WaterTankPainter oldDelegate) {
-    return oldDelegate.animationValue != animationValue;
+    return oldDelegate.animationValue != animationValue || 
+           oldDelegate.fillPercentage != fillPercentage;
   }
 }
 
