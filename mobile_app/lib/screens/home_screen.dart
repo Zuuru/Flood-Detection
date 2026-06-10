@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'dart:math' as math;
 import '../services/firebase_service.dart';
 import '../models/flood_data.dart';
@@ -12,9 +13,27 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final FirebaseService _firebaseService = FirebaseService();
+  final List<double> _liveDistances = [];
+  late final StreamSubscription<FloodData> _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _subscription = _firebaseService.floodDataStream.listen((data) {
+      if (mounted) {
+        setState(() {
+          _liveDistances.add(data.distanceCm);
+          if (_liveDistances.length > 20) {
+            _liveDistances.removeAt(0);
+          }
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _subscription.cancel();
     _firebaseService.dispose();
     super.dispose();
   }
@@ -40,6 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 32),
                   _buildPrimaryMetricCard(floodData),
                   const SizedBox(height: 16),
+                  _buildStatsGrid(),
+                  const SizedBox(height: 16),
                   StreamBuilder<List<FloodData>>(
                     stream: _firebaseService.historyStream,
                     builder: (context, historySnapshot) {
@@ -47,8 +68,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildStatsGrid(history),
-                          const SizedBox(height: 16),
                           _buildAnalysisSection(history),
                         ],
                       );
@@ -149,36 +168,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Tank',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 24,
-                    color: Colors.white70,
-                  ),
-                ),
-                Text(
-                  '--',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 64,
-                    fontWeight: FontWeight.w900,
-                    height: 1.0,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ],
     );
   }
@@ -232,64 +221,41 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          // Water tank with wave animation
-          SizedBox(
-            width: 80,
-            height: 60,
-            child: AnimatedWaterTank(
-              fillPercentage: data?.dangerProgress ?? 0.0,
-            ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildStatsGrid(List<FloodData> history) {
+  Widget _buildStatsGrid() {
     String rateStr = '--';
     List<double> barHeights = List.filled(9, 4.0); // Default to empty lines
 
-    if (history.length >= 2) {
-      // Calculate average rate across the entire history range
-      final latest = history.first;
-      final oldest = history.last;
-      final deltaDist = oldest.distanceCm - latest.distanceCm; // positive = water rising
-      final deltaSec = latest.timestamp.difference(oldest.timestamp).inSeconds;
-      
-      if (deltaSec > 0) {
-        final avgRatePerMin = (deltaDist / deltaSec) * 60;
-        rateStr = avgRatePerMin.toStringAsFixed(1);
-      } else {
-        rateStr = '0.0';
+    if (_liveDistances.isNotEmpty) {
+      double sum = 0;
+      for (var d in _liveDistances) {
+        sum += d;
+      }
+      double avg = sum / _liveDistances.length;
+      rateStr = avg.toStringAsFixed(1);
+
+      double maxVal = 1.0;
+      for (var d in _liveDistances) {
+        if (d > maxVal) maxVal = d;
       }
 
-      // Generate 9 bars
-      double maxRate = 1.0; // avoid division by zero
-      List<double> recentRates = [];
-      for (int i = 0; i < history.length - 1 && i < 9; i++) {
-        final curr = history[i];
-        final prev = history[i+1];
-        final dDist = prev.distanceCm - curr.distanceCm;
-        final dSec = curr.timestamp.difference(prev.timestamp).inSeconds;
-        if (dSec > 0) {
-          final rate = (dDist / dSec) * 60;
-          recentRates.add(rate.abs());
-          if (rate.abs() > maxRate) maxRate = rate.abs();
-        } else {
-          recentRates.add(0);
-        }
-      }
-      
-      recentRates = recentRates.reversed.toList(); // chronological
-      for (int i = 0; i < recentRates.length; i++) {
-        final scaled = (recentRates[i] / maxRate) * 40;
+      var recent = _liveDistances.length > 9 
+          ? _liveDistances.sublist(_liveDistances.length - 9)
+          : _liveDistances;
+          
+      for (int i = 0; i < recent.length; i++) {
+        final scaled = (recent[i] / maxVal) * 40;
         barHeights[i] = scaled < 4 ? 4 : scaled;
       }
     }
 
     return Row(
       children: [
-        // Water Rise Rate Card
+        // Average Distance Card (formerly Water Rise Rate)
         Expanded(
           child: Container(
             height: 160,
@@ -320,7 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(width: 4),
                         const Text(
-                          'cm/min',
+                          'cm',
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 12,
@@ -331,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'Water Rise Rate',
+                      'Average Distance',
                       style: TextStyle(
                         fontFamily: 'Inter',
                         fontSize: 12,
@@ -372,6 +338,7 @@ class _HomeScreenState extends State<HomeScreen> {
     String startLabel = 'Old';
     String endLabel = 'New';
     List<double> barHeights = List.filled(20, 4.0);
+    List<Color> barColors = List.filled(20, const Color(0xFF2C2C2E)); // default gray for empty bars
     
     if (history.isNotEmpty) {
       double min = history[0].distanceCm;
@@ -391,9 +358,11 @@ class _HomeScreenState extends State<HomeScreen> {
       final plotData = history.take(20).toList().reversed.toList();
       double chartMax = max > 0 ? max : 1.0;
       
+      int offset = 20 - plotData.length;
       for (int i = 0; i < plotData.length; i++) {
         double scaled = (plotData[i].distanceCm / chartMax) * 120;
-        barHeights[i] = scaled < 4 ? 4 : scaled;
+        barHeights[offset + i] = scaled < 4 ? 4 : scaled;
+        barColors[offset + i] = plotData[i].statusColor;
       }
       
       String formatTime(DateTime dt) {
@@ -431,7 +400,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          // Main Bar chart placeholder
+          // Main Bar chart
           SizedBox(
             height: 120,
             child: Row(
@@ -442,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 8,
                   height: barHeights[index],
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFD60A).withValues(alpha: index >= 20 - (history.isEmpty ? 0 : history.length) ? 1.0 : 0.3), 
+                    color: barColors[index], 
                     borderRadius: BorderRadius.circular(2),
                   ),
                 );
@@ -493,134 +462,7 @@ class _StatText extends StatelessWidget {
   }
 }
 
-class AnimatedWaterTank extends StatefulWidget {
-  final double fillPercentage;
 
-  const AnimatedWaterTank({
-    super.key,
-    this.fillPercentage = 0.0,
-  });
-
-  @override
-  State<AnimatedWaterTank> createState() => _AnimatedWaterTankState();
-}
-
-class _AnimatedWaterTankState extends State<AnimatedWaterTank>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return CustomPaint(
-          painter: WaterTankPainter(
-            animationValue: _controller.value,
-            fillPercentage: widget.fillPercentage,
-          ),
-        );
-      },
-    );
-  }
-}
-
-class WaterTankPainter extends CustomPainter {
-  final double animationValue;
-  final double fillPercentage;
-
-  WaterTankPainter({
-    required this.animationValue,
-    required this.fillPercentage,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paintLine = Paint()
-      ..color = const Color(0xFF64D2FF)
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-
-    final paintFill = Paint()
-      ..color = const Color(0xFF64D2FF).withValues(alpha: 0.3)
-      ..style = PaintingStyle.fill;
-
-    final paintTick = Paint()
-      ..color = const Color(0xFF73787B)
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-
-    // Draw scale
-    canvas.drawLine(const Offset(0, 0), Offset(0, size.height), paintTick);
-    for (int i = 0; i < 5; i++) {
-      double y = size.height * (i / 4);
-      canvas.drawLine(Offset(0, y), Offset(5, y), paintTick);
-    }
-
-    // Draw tank
-    final tankRect = Rect.fromLTWH(15, 0, size.width - 15, size.height);
-    final tankPath = Path()
-      ..moveTo(tankRect.left, tankRect.top)
-      ..lineTo(tankRect.left, tankRect.bottom - 5)
-      ..arcToPoint(Offset(tankRect.left + 5, tankRect.bottom),
-          radius: const Radius.circular(5), clockwise: false)
-      ..lineTo(tankRect.right - 5, tankRect.bottom)
-      ..arcToPoint(Offset(tankRect.right, tankRect.bottom - 5),
-          radius: const Radius.circular(5), clockwise: false)
-      ..lineTo(tankRect.right, tankRect.top);
-
-    canvas.drawPath(tankPath, paintLine);
-
-    // Draw animated water wave
-    // Use fillPercentage to determine water level (0.0 = empty, 1.0 = full)
-    // Map percentage to Y coordinate. 1.0 -> y=tankRect.top, 0.0 -> y=tankRect.bottom
-    final fillClamped = fillPercentage.clamp(0.0, 1.0);
-    final waterLevel = tankRect.bottom - (tankRect.height * fillClamped);
-    final waveHeight = 4.0; // amplitude
-    
-    final waterPath = Path();
-    waterPath.moveTo(tankRect.left, waterLevel);
-    
-    // Create wave using sine function
-    for (double x = 0; x <= tankRect.width; x++) {
-      // 2 * pi makes it a full wave. 
-      // adding animationValue * 2 * pi shifts the wave over time
-      final y = waterLevel + math.sin((x / tankRect.width * 2 * math.pi) + (animationValue * 2 * math.pi)) * waveHeight;
-      waterPath.lineTo(tankRect.left + x, y);
-    }
-    
-    waterPath.lineTo(tankRect.right, tankRect.bottom - 5);
-    waterPath.arcToPoint(Offset(tankRect.right - 5, tankRect.bottom),
-        radius: const Radius.circular(5), clockwise: true);
-    waterPath.lineTo(tankRect.left + 5, tankRect.bottom);
-    waterPath.arcToPoint(Offset(tankRect.left, tankRect.bottom - 5),
-        radius: const Radius.circular(5), clockwise: true);
-    waterPath.close();
-
-    canvas.drawPath(waterPath, paintFill);
-  }
-
-  @override
-  bool shouldRepaint(covariant WaterTankPainter oldDelegate) {
-    return oldDelegate.animationValue != animationValue || 
-           oldDelegate.fillPercentage != fillPercentage;
-  }
-}
 
 class TrendLinePainter extends CustomPainter {
   @override

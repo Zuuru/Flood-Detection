@@ -95,46 +95,48 @@ class FirebaseService {
   }
 
   Stream<List<FloodData>> get historyStream {
-    // Menghitung timestamp 6 bulan yang lalu (180 hari)
-    final sixMonthsAgo = DateTime.now().subtract(const Duration(days: 180)).millisecondsSinceEpoch;
-    
     return FirebaseDatabase.instance
         .ref('history')
-        .orderByChild('timestamp')
-        .startAt(sixMonthsAgo)
+        .orderByKey()
+        .limitToLast(50)
         .onValue
         .map((event) {
       if (event.snapshot.value == null) return [];
       
       final Map<dynamic, dynamic> values = event.snapshot.value as Map<dynamic, dynamic>;
-      List<FloodData> historyList = [];
       
+      // Extract raw list
+      final List<Map<dynamic, dynamic>> rawList = [];
       values.forEach((key, value) {
-        try {
-          final entry = value as Map<dynamic, dynamic>;
-          final distanceCm = (entry['jarak_cm'] as num).toDouble();
-          final timestampRaw = entry['timestamp'];
-          
-          DateTime timestamp;
-          if (timestampRaw is int) {
-            timestamp = DateTime.fromMillisecondsSinceEpoch(timestampRaw);
-          } else {
-            timestamp = DateTime.now();
-          }
+        rawList.add(value as Map<dynamic, dynamic>);
+      });
+      
+      // Sort raw list descending by timestamp
+      rawList.sort((a, b) {
+        final tA = a['timestamp'] ?? 0;
+        final tB = b['timestamp'] ?? 0;
+        return tB.compareTo(tA);
+      });
 
+      List<FloodData> historyList = [];
+      DateTime currentTime = DateTime.now();
+
+      for (int i = 0; i < rawList.length; i++) {
+        try {
+          final entry = rawList[i];
+          final distanceCm = (entry['jarak_cm'] as num).toDouble();
+          
           historyList.add(FloodData(
             distanceCm: distanceCm,
-            timestamp: timestamp,
+            timestamp: currentTime.subtract(Duration(seconds: 15 * i)),
             warningThreshold: _warningThreshold,
             emergencyThreshold: _emergencyThreshold,
           ));
         } catch (e) {
           print('Error parsing history stream entry: $e');
         }
-      });
+      }
       
-      // Sort descending (newest first)
-      historyList.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       return historyList;
     });
   }
