@@ -1,6 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-import 'screens/dashboard_screen.dart';
+import 'screens/main_layout.dart'; // Import MainLayout
 
 void main() {
   runApp(const FloodDashboardApp());
@@ -16,9 +16,10 @@ class FloodDashboardApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
+        scaffoldBackgroundColor: Colors.black,
       ),
-      home: const DashboardScreen(),
+      home: const MainLayout(), // Set the wrapper with Navbar as home
     );
   }
 }
+

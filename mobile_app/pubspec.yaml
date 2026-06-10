@@ -87,3 +87,496 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# metadata:
+#   name: tubes
+#   components: {}
+#   componentSets: {}
+# nodes:
+#   - id: '4:280'
+#     name: Home
+#     type: FRAME
+#     fills: color_FFFFFF
+#     children:
+#       - id: '4:281'
+#         name: Main Container
+#         type: FRAME
+#         children:
+#           
+#           # --- 1. HEADER SECTION ---
+#           - id: '4:282'
+#             name: Header Section
+#             type: FRAME
+#             children:
+#               - id: '4:283'
+#                 name: User Avatar
+#                 type: FRAME
+#               - id: '4:285'
+#                 name: Action Buttons
+#                 type: FRAME
+#
+#           # --- 2. STATUS & BATTERY SECTION ---
+#           - id: '4:297'
+#             name: Container Status
+#             type: FRAME
+#             children:
+#               - id: '4:298'
+#                 name: Heading 2 → Flood Level is Normal
+#                 type: TEXT
+#                 text: Flood Level is Normal
+#                 textStyle: style_headline
+#                 fills: color_secondary
+#           - id: '4:294'
+#             name: Status Section:margin
+#             type: FRAME
+#             children:
+#               - id: '4:448'
+#                 name: Battery Text Group
+#                 type: GROUP
+#               - id: '4:302'
+#                 name: Segmented Progress Bar
+#                 type: FRAME
+#
+#           # --- 3. PRIMARY METRIC (DISTANCE TO WATER) ---
+#           - id: '4:310'
+#             name: Section - Primary Metric Card
+#             type: FRAME
+#             fills: color_1C1C1E
+#             borderRadius: 24px
+#             children:
+#               - id: '4:311'
+#                 name: Text Container
+#                 type: FRAME
+#                 children:
+#                   - id: '4:313'
+#                     name: Text 346
+#                     type: TEXT
+#                     text: '346'
+#                   - id: '4:314'
+#                     name: Text /2347 cm
+#                     type: TEXT
+#                     text: /2347 cm
+#                     fills: color_neutral
+#                   - id: '4:316'
+#                     name: Text Distance to Water
+#                     type: TEXT
+#                     text: Distance to Water
+#                     fills: color_neutral
+#               - id: '4:317'
+#                 name: Custom Illustration:margin
+#                 type: FRAME
+#
+#           # --- 4. STATS GRID ---
+#           - id: '4:329'
+#             name: Section - Stats Grid
+#             type: FRAME
+#             children:
+#               - id: '4:330'
+#                 name: Water Rise Rate Card
+#                 type: FRAME
+#                 fills: color_primary
+#                 borderRadius: 24px
+#               - id: '4:356'
+#                 name: Signal Trend Card
+#                 type: FRAME
+#                 fills: color_1C1C1E
+#                 borderRadius: 24px
+#
+#           # --- 5. ANALYSIS SECTION ---
+#           - id: '4:368'
+#             name: Analysis Section:margin
+#             type: FRAME
+#             children:
+#               - id: '4:369'
+#                 name: Analysis Section
+#                 type: FRAME
+#                 fills: color_1C1C1E
+#                 borderRadius: 24px
+#                 children:
+#                   - id: '4:370'
+#                     name: Heading 3
+#                     type: FRAME
+#                     children:
+#                       - id: '4:371'
+#                         name: Water Level Analysis
+#                         type: TEXT
+#                         text: Water Level Analysis
+#                         textStyle: style_body
+#                   - id: '4:372'
+#                     name: Min/Avg/Max Text
+#                     type: FRAME
+#                   - id: '4:382'
+#                     name: Bar Chart Container
+#                     type: FRAME
+#
+#       # --- 6. BOTTOM NAVIGATION ---
+#       - id: '4:408'
+#         name: Bottom Navigation
+#         type: FRAME
+#         fills: color_1C1C1E
+#         borderRadius: 32px
+#         children:
+#           - id: '4:409'
+#             name: 'Link - Nav Item: Home (Active)'
+#             type: FRAME
+#             fills: color_primary
+#             children:
+#               - id: '4:413'
+#                 name: Text Home
+#                 type: TEXT
+#                 text: Home
+#                 textStyle: style_label
+#           - id: '4:414'
+#             name: 'Link - Nav Item: Logs'
+#             type: FRAME
+#             children:
+#               - id: '4:418'
+#                 name: Text Logs
+#                 type: TEXT
+#                 text: Logs
+#                 textStyle: style_label
+#           - id: '4:419'
+#             name: 'Link - Nav Item: Alerts'
+#             type: FRAME
+#             children:
+#               - id: '4:423'
+#                 name: Text Alerts
+#                 type: TEXT
+#                 text: Alerts
+#                 textStyle: style_label
+#
+#       - id: '4:429'
+#         name: Home Indicator (iOS)
+#         type: RECTANGLE
+#         fills: color_FFFFFF
+#         borderRadius: 9999px
+#
+# globalVars:
+#   styles:
+#     # --- DESIGN SYSTEM COLORS ---
+#     color_primary:
+#       - '#64D2FF'
+#     color_secondary:
+#       - '#32D74B'
+#     color_tertiary:
+#       - '#FFD60A'
+#     color_neutral:
+#       - '#73787B'
+#     
+#     # --- BASE UI COLORS ---
+#     color_1C1C1E:
+#       - '#1C1C1E'
+#     color_FFFFFF:
+#       - '#FFFFFF'
+#
+#     # --- DESIGN SYSTEM TYPOGRAPHY ---
+#     style_headline:
+#       fontFamily: Inter
+#       fontWeight: 700
+#       fontSize: 24
+#     style_body:
+#       fontFamily: Inter
+#       fontWeight: 400
+#       fontSize: 16
+#     style_label:
+#       fontFamily: Inter
+#       fontWeight: 400
+#       fontSize: 12
+
+########LOGS
+# metadata:
+#   name: tubes
+#   components: {}
+#   componentSets: {}
+# nodes:
+#   - id: '8:449'
+#     name: Logs
+#     type: FRAME
+#     layout: layout_XRDWPN
+#     fills: color_1C1C1E
+#     children:
+#       
+#       # --- 1. HEADER SECTION ---
+#       - id: '8:450'
+#         name: Header - TopAppBar
+#         type: FRAME
+#         layout: layout_Z7HGNM
+#         children:
+#           - id: '8:451'
+#             name: Back Button
+#             type: FRAME
+#             children:
+#               - id: '8:453'
+#                 name: Icon Back
+#                 type: VECTOR
+#                 fills: color_DFE3E7
+#           - id: '8:454'
+#             name: Heading 1
+#             type: FRAME
+#             children:
+#               - id: '8:455'
+#                 name: Text Activity Logs
+#                 type: TEXT
+#                 fills: color_DFE3E7
+#                 text: Activity Logs
+#                 textStyle: style_headline
+#
+#       # --- 2. MAIN CONTENT ---
+#       - id: '8:456'
+#         name: Main
+#         type: FRAME
+#         layout: layout_WWX5GB
+#         children:
+#           
+#           # --- A. SEARCH AND FILTER ---
+#           - id: '8:457'
+#             name: Search and Filter
+#             type: FRAME
+#             layout: layout_0VK9DD
+#             children:
+#               - id: '8:458'
+#                 name: Search Bar
+#                 type: FRAME
+#                 fills: color_2C2C2E
+#                 borderRadius: 8px
+#                 children:
+#                   - id: '8:460'
+#                     name: Icon Search
+#                     type: VECTOR
+#                     fills: color_neutral
+#                   - id: '8:463'
+#                     name: Input Text
+#                     type: TEXT
+#                     fills: color_neutral
+#                     text: Search logs...
+#                     textStyle: style_body
+#               - id: '8:464'
+#                 name: Filter Button
+#                 type: FRAME
+#                 fills: color_2C2C2E
+#                 borderRadius: 8px
+#                 children:
+#                   - id: '8:466'
+#                     name: Icon Filter
+#                     type: VECTOR
+#                     fills: color_neutral
+#
+#           # --- B. LOGS CONTAINER ---
+#           - id: '8:467'
+#             name: Logs Container
+#             type: FRAME
+#             fills: color_1C1C1E
+#             borderRadius: 24px
+#             children:
+#               
+#               # Table Header
+#               - id: '8:469'
+#                 name: Table Header
+#                 type: FRAME
+#                 strokes: stroke_3E484E
+#                 children:
+#                   - id: '8:471'
+#                     name: Header DATE/TIME
+#                     type: TEXT
+#                     text: DATE/TIME
+#                     textStyle: style_label
+#                   - id: '8:473'
+#                     name: Header DISTANCE
+#                     type: TEXT
+#                     text: DISTANCE
+#                     textStyle: style_label
+#                   - id: '8:475'
+#                     name: Header STATUS
+#                     type: TEXT
+#                     text: STATUS
+#                     textStyle: style_label
+#
+#               # Log Entries (Disederhanakan menjadi 3 variasi status)
+#               - id: '8:476'
+#                 name: Log Entries
+#                 type: FRAME
+#                 children:
+#                   
+#                   # Entry 1: AMAN (Hijau)
+#                   - id: '8:477'
+#                     name: Row 1 - AMAN
+#                     type: FRAME
+#                     strokes: stroke_3E484E
+#                     borderRadius: 6px
+#                     children:
+#                       - id: '8:480'
+#                         name: Date
+#                         type: TEXT
+#                         text: 12 Oct
+#                       - id: '8:482'
+#                         name: Time
+#                         type: TEXT
+#                         text: '14:30:45'
+#                       - id: '8:484'
+#                         name: Distance
+#                         type: TEXT
+#                         text: 345 cm
+#                       - id: '8:486'
+#                         name: Status Badge
+#                         type: FRAME
+#                         fills: color_secondary # Hijau (Aman)
+#                         borderRadius: 9999px
+#                         children:
+#                           - id: '8:488'
+#                             name: Text
+#                             type: TEXT
+#                             text: AMAN
+#
+#                   # Entry 2: SIAGA (Kuning)
+#                   - id: '8:489'
+#                     name: Row 2 - SIAGA
+#                     type: FRAME
+#                     strokes: stroke_3E484E
+#                     borderRadius: 6px
+#                     children:
+#                       - id: '8:492'
+#                         name: Date
+#                         type: TEXT
+#                         text: 12 Oct
+#                       - id: '8:494'
+#                         name: Time
+#                         type: TEXT
+#                         text: '14:15:20'
+#                       - id: '8:496'
+#                         name: Distance
+#                         type: TEXT
+#                         text: 410 cm
+#                       - id: '8:498'
+#                         name: Status Badge
+#                         type: FRAME
+#                         fills: color_tertiary # Kuning (Siaga)
+#                         borderRadius: 9999px
+#                         children:
+#                           - id: '8:500'
+#                             name: Text
+#                             type: TEXT
+#                             text: SIAGA
+#
+#                   # Entry 3: EVAKUASI (Merah)
+#                   - id: '8:501'
+#                     name: Row 3 - EVAKUASI
+#                     type: FRAME
+#                     strokes: stroke_3E484E
+#                     borderRadius: 6px
+#                     children:
+#                       - id: '8:504'
+#                         name: Date
+#                         type: TEXT
+#                         text: 12 Oct
+#                       - id: '8:506'
+#                         name: Time
+#                         type: TEXT
+#                         text: '13:50:11'
+#                       - id: '8:508'
+#                         name: Distance
+#                         type: TEXT
+#                         text: 650 cm
+#                       - id: '8:510'
+#                         name: Status Badge
+#                         type: FRAME
+#                         fills: color_error # Asumsi warna merah untuk bahaya
+#                         borderRadius: 9999px
+#                         children:
+#                           - id: '8:512'
+#                             name: Text
+#                             type: TEXT
+#                             text: EVAKUASI
+#
+#               # Load More Button
+#               - id: '8:538'
+#                 name: Button Load More
+#                 type: FRAME
+#                 children:
+#                   - id: '8:539'
+#                     name: Text
+#                     type: TEXT
+#                     fills: color_secondary
+#                     text: Load More
+#                     textStyle: style_body
+
+## metadata:
+#   name: tubes_navbar_only
+#   components: {}
+#   componentSets: {}
+# nodes:
+#   - id: '15:4'
+#     name: Bottom Navigation
+#     type: FRAME
+#     fills: color_1C1C1E
+#     strokes: stroke_3E484E
+#     strokeWeight: 1px
+#     borderRadius: 32px
+#     children:
+#       
+#       # --- 1. HOME (ACTIVE TAB) ---
+#       - id: '15:6'
+#         name: 'Link - Nav Item: Home (Active)'
+#         type: FRAME
+#         fills: color_primary
+#         borderRadius: 24px
+#         children:
+#           - id: '15:8'
+#             name: Icon Home
+#             type: VECTOR
+#             fills: color_1C1C1E
+#           - id: '15:10'
+#             name: Text Home
+#             type: TEXT
+#             text: Home
+#             textStyle: style_label
+#             fills: color_1C1C1E
+#
+#       # --- 2. LOGS ---
+#       - id: '15:11'
+#         name: 'Link - Nav Item: Logs'
+#         type: FRAME
+#         children:
+#           - id: '15:13'
+#             name: Icon Logs
+#             type: VECTOR
+#             fills: color_neutral
+#           - id: '15:15'
+#             name: Text Logs
+#             type: TEXT
+#             text: Logs
+#             textStyle: style_label
+#             fills: color_neutral
+#
+#       # --- 3. SETTINGS ---
+#       - id: '15:16'
+#         name: 'Link - Nav Item: Settings'
+#         type: FRAME
+#         children:
+#           - id: '15:18'
+#             name: Icon Settings
+#             type: VECTOR
+#             fills: color_neutral
+#           - id: '15:20'
+#             name: Text Settings
+#             type: TEXT
+#             text: Settings
+#             textStyle: style_label
+#             fills: color_neutral
+#
+# globalVars:
+#   styles:
+#     # --- DESIGN SYSTEM COLORS ---
+#     color_primary:
+#       - '#64D2FF'
+#     color_neutral:
+#       - '#73787B'
+#     
+#     # --- BASE UI COLORS ---
+#     color_1C1C1E:
+#       - '#1C1C1E'
+#     stroke_3E484E:
+#       - '#3E484E'
+#
+#     # --- DESIGN SYSTEM TYPOGRAPHY ---
+#     style_label:
+#
