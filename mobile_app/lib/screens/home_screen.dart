@@ -3,7 +3,8 @@ import 'dart:async';
 import 'dart:math' as math;
 import '../services/firebase_service.dart';
 import '../models/flood_data.dart';
-
+import 'notification_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -16,9 +17,13 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<double> _liveDistances = [];
   late final StreamSubscription<FloodData> _subscription;
 
+  bool _isEditMode = false;
+  List<String> _widgetOrder = ['status', 'primary', 'stats', 'analysis'];
+
   @override
   void initState() {
     super.initState();
+    _loadLayoutOrder();
     _subscription = _firebaseService.floodDataStream.listen((data) {
       if (mounted) {
         setState(() {
@@ -38,6 +43,47 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  Future<void> _loadLayoutOrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedOrder = prefs.getStringList('dashboard_layout');
+    if (savedOrder != null && savedOrder.length == 4) {
+      setState(() {
+        _widgetOrder = savedOrder;
+      });
+    }
+  }
+
+  Future<void> _saveLayoutOrder() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('dashboard_layout', _widgetOrder);
+  }
+
+  Widget _buildWidgetForKey(String key, FloodData? floodData) {
+    switch (key) {
+      case 'status':
+        return _buildStatusSection(floodData);
+      case 'primary':
+        return _buildPrimaryMetricCard(floodData);
+      case 'stats':
+        return _buildStatsGrid();
+      case 'analysis':
+        return StreamBuilder<List<FloodData>>(
+          stream: _firebaseService.historyStream,
+          builder: (context, historySnapshot) {
+            final history = historySnapshot.data ?? [];
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildAnalysisSection(history),
+              ],
+            );
+          }
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,24 +101,55 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   _buildHeader(),
                   const SizedBox(height: 32),
-                  _buildStatusSection(floodData),
-                  const SizedBox(height: 32),
-                  _buildPrimaryMetricCard(floodData),
-                  const SizedBox(height: 16),
-                  _buildStatsGrid(),
-                  const SizedBox(height: 16),
-                  StreamBuilder<List<FloodData>>(
-                    stream: _firebaseService.historyStream,
-                    builder: (context, historySnapshot) {
-                      final history = historySnapshot.data ?? [];
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildAnalysisSection(history),
-                        ],
-                      );
-                    }
-                  ),
+                  if (_isEditMode)
+                    Theme(
+                      data: Theme.of(context).copyWith(
+                        canvasColor: Colors.transparent,
+                      ),
+                      child: ReorderableListView(
+                        buildDefaultDragHandles: false,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        onReorder: (oldIndex, newIndex) {
+                          if (newIndex > oldIndex) newIndex -= 1;
+                          setState(() {
+                            final item = _widgetOrder.removeAt(oldIndex);
+                            _widgetOrder.insert(newIndex, item);
+                          });
+                          _saveLayoutOrder();
+                        },
+                        children: _widgetOrder.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final key = entry.value;
+                          return Container(
+                            key: ValueKey(key),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            child: Row(
+                              children: [
+                                Expanded(child: _buildWidgetForKey(key, floodData)),
+                                ReorderableDragStartListener(
+                                  index: index,
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(12.0),
+                                    child: Icon(Icons.drag_handle, color: Colors.white, size: 32),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    )
+                  else
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: _widgetOrder.map((key) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _buildWidgetForKey(key, floodData),
+                        );
+                      }).toList(),
+                    ),
                   // Bottom Nav will be handled in a separate file/wrapper
                 ],
               ),
@@ -90,18 +167,33 @@ class _HomeScreenState extends State<HomeScreen> {
         const CircleAvatar(
           radius: 24,
           backgroundColor: Color(0xFF1C1C1E),
-          child: Icon(Icons.person, color: Colors.white),
+          child: Text(
+            '1',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Inter',
+            ),
+          ),
         ),
         Row(
           children: [
             Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFF1C1C1E),
+              decoration: BoxDecoration(
+                color: _isEditMode ? const Color(0xFF32D74B).withValues(alpha: 0.2) : const Color(0xFF1C1C1E),
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: const Icon(Icons.auto_fix_high, color: Colors.white),
-                onPressed: () {},
+                icon: Icon(
+                  _isEditMode ? Icons.check : Icons.dashboard_customize,
+                  color: _isEditMode ? const Color(0xFF32D74B) : Colors.white,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isEditMode = !_isEditMode;
+                  });
+                },
               ),
             ),
             const SizedBox(width: 12),
@@ -114,7 +206,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   child: IconButton(
                     icon: const Icon(Icons.notifications_none, color: Colors.white),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NotificationScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 Positioned(

@@ -3,12 +3,16 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 import 'screens/main_layout.dart'; // Import MainLayout
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await NotificationService().initialize();
+  // Auto-subscribe to flood alerts topic so notifications work without opening Settings
+  await NotificationService().subscribeToTopic('flood_alerts');
   runApp(const FloodDashboardApp());
 }
 

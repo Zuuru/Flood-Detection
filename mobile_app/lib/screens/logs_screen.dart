@@ -137,7 +137,10 @@ class _LogsScreenState extends State<LogsScreen> {
                   return const Center(child: CircularProgressIndicator(color: Color(0xFF32D74B)));
                 }
                 
-                final historyList = snapshot.data ?? [];
+                final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
+                final historyList = (snapshot.data ?? [])
+                    .where((data) => data.timestamp.isAfter(sevenDaysAgo))
+                    .toList();
                 
                 if (historyList.isEmpty) {
                   return const Center(child: Text('No history found', style: TextStyle(color: Colors.white)));
@@ -145,29 +148,8 @@ class _LogsScreenState extends State<LogsScreen> {
                 
                 return ListView.builder(
                   padding: const EdgeInsets.only(bottom: 120.0),
-                  itemCount: historyList.length + 1, // +1 for the load more button
+                  itemCount: historyList.length,
                   itemBuilder: (context, index) {
-                    if (index == historyList.length) {
-                      return Column(
-                        children: [
-                          const SizedBox(height: 24),
-                          Center(
-                            child: TextButton(
-                              onPressed: () {},
-                              child: const Text(
-                                'Load More',
-                                style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 16,
-                                  color: Color(0xFF32D74B),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                        ],
-                      );
-                    }
                     final data = historyList[index];
                     return _buildLogEntry(
                       _formatDate(data.timestamp),

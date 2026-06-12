@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import '../models/flood_data.dart';
+import '../models/notification_data.dart';
 
 class FirebaseService {
   final DatabaseReference _sensorRef = FirebaseDatabase.instance.ref('sensor');
@@ -138,6 +139,66 @@ class FirebaseService {
       }
       
       return historyList;
+    });
+  }
+
+  Stream<List<NotificationData>> get notificationsStream {
+    return FirebaseDatabase.instance
+        .ref('history')
+        .orderByKey()
+        .limitToLast(200)
+        .onValue
+        .map((event) {
+      if (event.snapshot.value == null) return [];
+      
+      final Map<dynamic, dynamic> values = event.snapshot.value as Map<dynamic, dynamic>;
+
+      // Collect all entries with their Firebase key (which IS chronologically ordered)
+      final List<MapEntry<String, Map<dynamic, dynamic>>> rawList = [];
+      values.forEach((key, value) {
+        if (value != null) {
+          rawList.add(MapEntry(key.toString(), value as Map<dynamic, dynamic>));
+        }
+      });
+
+      // Sort by Firebase key (ascending = oldest first)
+      rawList.sort((a, b) => a.key.compareTo(b.key));
+
+      final List<NotificationData> notificationList = [];
+      int lastEvakuasiIndex = -999; // Track index of last added EVAKUASI notif
+      const cooldownEntries = 5; // Show 1 notif per every 5 EVAKUASI entries
+
+      for (int i = 0; i < rawList.length; i++) {
+        try {
+          final entry = rawList[i].value;
+          final distanceCm = (entry['jarak_cm'] as num).toDouble();
+          
+          // Use current time offset by position for display (since ESP32 has no real clock)
+          // Each entry is ~5 seconds apart based on INTERVAL_KIRIM
+          final now = DateTime.now();
+          final secondsAgo = (rawList.length - 1 - i) * 5;
+          final approxTimestamp = now.subtract(Duration(seconds: secondsAgo));
+
+          // Only show EVAKUASI level notifications, grouped every 5 entries
+          if (distanceCm <= _emergencyThreshold) {
+            if (lastEvakuasiIndex == -999 || (i - lastEvakuasiIndex) >= cooldownEntries) {
+              notificationList.add(NotificationData(
+                title: 'AWAS: Siaga Banjir!',
+                body: 'Ketinggian air mencapai level berbahaya ($distanceCm cm). Segera evakuasi!',
+                timestamp: approxTimestamp,
+                isUnread: true,
+              ));
+              lastEvakuasiIndex = i;
+            }
+          }
+        } catch (e) {
+          print('Error parsing history for notification: $e');
+        }
+      }
+      
+      // Sort descending (newest first)
+      notificationList.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return notificationList;
     });
   }
 

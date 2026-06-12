@@ -36,6 +36,9 @@ dependencies:
   cupertino_icons: ^1.0.8
   firebase_core: ^4.10.0
   firebase_database: ^12.4.2
+  firebase_messaging: ^16.3.0
+  flutter_local_notifications: ^20.1.0
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
@@ -47,6 +50,12 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: false
+  image_path: "lib/aseets/logo.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

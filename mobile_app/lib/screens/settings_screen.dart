@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../services/firebase_service.dart';
-
+import '../services/notification_service.dart';
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -13,9 +13,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final FirebaseService _firebaseService = FirebaseService();
   bool _isLoading = true;
   // State variables for toggles
-  bool _systemAlerts = true;
   bool _pushNotification = true;
-  bool _smsAlert = true;
   bool _soundSiren = false;
 
   // Colors based on spec
@@ -39,9 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final config = await _firebaseService.getConfig();
     if (mounted) {
       setState(() {
-        _systemAlerts = config['system_alerts'] ?? true;
         _pushNotification = config['push_notification'] ?? true;
-        _smsAlert = config['sms_alert'] ?? true;
         _soundSiren = config['sound_siren'] ?? false;
         _isLoading = false;
       });
@@ -50,9 +46,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _saveConfig() async {
     await _firebaseService.updateConfig({
-      'system_alerts': _systemAlerts,
       'push_notification': _pushNotification,
-      'sms_alert': _smsAlert,
       'sound_siren': _soundSiren,
     });
   }
@@ -71,8 +65,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     _buildHeader(),
                     const SizedBox(height: 24),
-                    _buildMasterToggleCard(),
-                    const SizedBox(height: 16),
                     _buildDeliveryMethodsCard(),
                     // Add bottom padding to avoid overlap with bottom navigation bar
                     const SizedBox(height: 100),
@@ -106,57 +98,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildMasterToggleCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: colorCard,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'System Alerts',
-                  style: TextStyle(
-                    color: colorTextPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'Inter',
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Master switch for all notifications',
-                  style: TextStyle(
-                    color: colorTextNeutral,
-                    fontSize: 12,
-                    fontFamily: 'Inter',
-                  ),
-                ),
-              ],
-            ),
-          ),
-          CupertinoSwitch(
-            value: _systemAlerts,
-            activeColor: colorSecondary,
-            trackColor: colorInactive,
-            onChanged: (value) {
-              setState(() {
-                _systemAlerts = value;
-              });
-              _saveConfig();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildDeliveryMethodsCard() {
     return Container(
       decoration: BoxDecoration(
@@ -177,18 +118,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          _buildMethodToggle('Push Notification', Icons.notifications_none, _pushNotification, (val) {
+          _buildMethodToggle('Push Notification', Icons.notifications_none, _pushNotification, (val) async {
             setState(() {
               _pushNotification = val;
             });
-            _saveConfig();
-          }),
-          const SizedBox(height: 16),
-          _buildMethodToggle('SMS Alert', Icons.chat_bubble_outline, _smsAlert, (val) {
-            setState(() {
-              _smsAlert = val;
-            });
-            _saveConfig();
+            await _saveConfig();
+            if (val) {
+              await NotificationService().subscribeToTopic('flood_alerts');
+            } else {
+              await NotificationService().unsubscribeFromTopic('flood_alerts');
+            }
           }),
           const SizedBox(height: 16),
           _buildMethodToggle('Sound Siren', Icons.volume_up_outlined, _soundSiren, (val) {
